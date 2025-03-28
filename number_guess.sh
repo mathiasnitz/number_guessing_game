@@ -37,7 +37,7 @@ then
 
     IFS="|" read -r USER_ID USERNAME GAMES_PLAYED BEST_GAME <<< "$USER_EXTENDED_INFO"
 
-    echo -e "Welcome back, $USERNAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
+    echo "Welcome back, $USERNAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
 
     $PSQL "UPDATE users SET games_played=games_played+1 WHERE user_id=$USER_ID"
     $PSQL "INSERT INTO games(user_id) VALUES($USER_ID)"
