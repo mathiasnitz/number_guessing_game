@@ -44,7 +44,7 @@ then
     $PSQL "INSERT INTO games(user_id) VALUES($USER_ID)"
   fi
 
-  echo Guess the secret number between 1 and 1000:
+  echo "Guess the secret number between 1 and 1000:"
 
 fi
 
