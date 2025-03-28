@@ -4,7 +4,7 @@ echo "Enter your username:"
 read USERNAME
 
 #secret number
-SECRET_NUMBER=$((RANDOM % 1000 + 1))
+SECRET_NUMBER=$(( RANDOM % 1000 + 1 ))
 NUMBER_OF_GUESSES=0
 
 #datenbankverbindung in psql
@@ -56,34 +56,33 @@ do
   if [[ $GUESSED_NUMBER =~ ^[0-9]+$ ]]
   then
 
-    GAME_ID=$($PSQL "SELECT game_id FROM games WHERE user_id=$USER_ID ORDER BY game_id DESC LIMIT 1")
-
     NUMBER_OF_GUESSES=$((NUMBER_OF_GUESSES + 1))
 
-      if [[ $SECRET_NUMBER -gt $GUESSED_NUMBER ]]
-      then
-        echo "It's higher than that, guess again:"
-        $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID" 
+    GAME_ID=$($PSQL "SELECT game_id FROM games WHERE user_id=$USER_ID ORDER BY game_id DESC LIMIT 1")
+
+    if [[ $SECRET_NUMBER -gt $GUESSED_NUMBER ]]
+    then
+      echo "It's higher than that, guess again:"
+      $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID" 
         
-      elif [[ $SECRET_NUMBER -lt $GUESSED_NUMBER ]]
+    elif [[ $SECRET_NUMBER -lt $GUESSED_NUMBER ]]
+    then
+      echo "It's lower than that, guess again:"
+      $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID" 
+
+    elif [[ $SECRET_NUMBER -eq $GUESSED_NUMBER ]]
+    then
+
+      echo "You guessed it in $NUMBER_OF_GUESSES tries. The secret number was $SECRET_NUMBER. Nice job!"
+
+      $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID"
+
+      if [[ $NUMBER_OF_GUESSES -lt $BEST_GAME ]] || [[ -z $BEST_GAME ]]
       then
-        echo "It's lower than that, guess again:"
-        $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID" 
-
-      elif [[ $SECRET_NUMBER -eq $GUESSED_NUMBER ]]
-      then
-
-        echo "You guessed it in $NUMBER_OF_GUESSES tries. The secret number was $SECRET_NUMBER. Nice job!"
-
-        if [[ $NUMBER_OF_GUESSES -lt $BEST_GAME ]] || [[ -z $BEST_GAME ]]
-        then
-          $PSQL "UPDATE users SET best_game=$NUMBER_OF_GUESSES WHERE user_id=$USER_ID"
-        fi
-
-        $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID" 
-
-        break;
+        $PSQL "UPDATE users SET best_game=$NUMBER_OF_GUESSES WHERE user_id=$USER_ID"
       fi
+      break;
+    fi
   else
     echo "That is not an integer, guess again:"
   fi
