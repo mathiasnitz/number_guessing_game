@@ -20,6 +20,7 @@ GUESSING_GAME() {
         
       elif [[ $SECRET_NUMBER -eq $GUESSED_NUMBER ]]
       then
+      
         echo "You guessed it in $NUMBER_OF_GUESSES tries. The secret number was $SECRET_NUMBER. Nice job!"
 
         $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID"
@@ -41,8 +42,12 @@ GUESSING_GAME() {
   done
 }
 
+USER_NAME_INPUT() {
 echo "Enter your username:"
 read USERNAME
+}
+
+USER_NAME_INPUT
 
 SECRET_NUMBER=$(( RANDOM % 1000 + 1 ))
 NUMBER_OF_GUESSES=0
@@ -50,33 +55,41 @@ NUMBER_OF_GUESSES=0
 # Datenbankverbindung in psql
 PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
 
-if [[ ! -z $USERNAME ]]
+if [[ -z $USERNAME ]]
 then
-  # Prüfen, ob der User existiert
-  USER_INFO=$($PSQL "SELECT username, user_id, games_played, best_game FROM users WHERE username ILIKE '$USERNAME'")
+  echo "Empty input is not accepted. Please enter your username"
+  USER_NAME_INPUT
 
-  if [[ -z $USER_INFO ]]
-  then
-    echo "Welcome, $USERNAME! It looks like this is your first time here."
+elif [[ $USERNAME =~ ^[a-zA-Z0-9_]{0,22}$ ]]
+then
 
-    # Neuen User anlegen
-    $PSQL "INSERT INTO users(username, games_played, best_game) VALUES('$USERNAME', 0, NULL)"
-    USER_ID=$($PSQL "SELECT user_id FROM users WHERE username ILIKE '$USERNAME'")
+    # Prüfen, ob der User existiert
+    USER_INFO=$($PSQL "SELECT username, user_id, games_played, best_game FROM users WHERE username ILIKE '$USERNAME'")
 
-  else
-    # User-Infos auslesen
-    IFS="|" read -r USERNAME_DB USER_ID GAMES_PLAYED2 BEST_GAME2 <<< "$USER_INFO"
+    if [[ -z $USER_INFO ]]
+    then
+      echo "Welcome, $USERNAME! It looks like this is your first time here."
 
-    GAMES_PLAYED=$($PSQL "SELECT COUNT(game_id) FROM games WHERE user_id=$USER_ID")
-    BEST_GAME=$($PSQL "SELECT MIN(number_of_guesses) FROM games WHERE user_id=$USER_ID")
+      # Neuen User anlegen
+      $PSQL "INSERT INTO users(username, games_played, best_game) VALUES('$USERNAME', 0, NULL)"
+      USER_ID=$($PSQL "SELECT user_id FROM users WHERE username ILIKE '$USERNAME'")
 
-    echo "Welcome back, $USERNAME_DB! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
-  fi
+    else
+      # User-Infos auslesen
+      IFS="|" read -r USERNAME_DB USER_ID GAMES_PLAYED2 BEST_GAME2 <<< "$USER_INFO"
 
-  # Neues Spiel für den User anlegen
-  $PSQL "INSERT INTO games(user_id) VALUES($USER_ID)"
-  GAME_ID=$($PSQL "SELECT game_id FROM games WHERE user_id=$USER_ID ORDER BY game_id DESC LIMIT 1")
+      GAMES_PLAYED=$($PSQL "SELECT COUNT(game_id) FROM games WHERE user_id=$USER_ID")
+      BEST_GAME=$($PSQL "SELECT MIN(number_of_guesses) FROM games WHERE user_id=$USER_ID")
 
-  echo "Guess the secret number between 1 and 1000:"
-  GUESSING_GAME
+      echo "Welcome back, $USERNAME_DB! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
+    fi
+
+    # Neues Spiel für den User anlegen
+    $PSQL "INSERT INTO games(user_id) VALUES($USER_ID)"
+    GAME_ID=$($PSQL "SELECT game_id FROM games WHERE user_id=$USER_ID ORDER BY game_id DESC LIMIT 1")
+
+    echo "Guess the secret number between 1 and 1000:"
+    GUESSING_GAME
+
 fi
+
