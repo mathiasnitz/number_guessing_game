@@ -13,6 +13,7 @@ read USERNAME
 
 if [[ ! -z $USERNAME ]]
 then
+
   USER_INFO=$($PSQL "SELECT username FROM users WHERE username='$USERNAME'")
 
   if [[ -z $USER_INFO ]]
@@ -39,7 +40,7 @@ then
 
     echo "Welcome back, $USERNAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
 
-    $PSQL "UPDATE users SET games_played=games_played+1 WHERE user_id=$USER_ID"
+    $PSQL "UPDATE users SET games_played=games_played+1 WHERE user_id=$USER_ID" > /dev/null
     NEW_GAME_ID=$($PSQL "INSERT INTO games(user_id) VALUES($USER_ID)")
   fi
 
@@ -54,36 +55,37 @@ do
   if [[ $GUESSED_NUMBER =~ ^[0-9]+$ ]]
   then
 
-    GAME_ID=$($PSQL "SELECT MAX(game_id) FROM games, users WHERE users.user_id = games.user_id AND username='$USERNAME'")
+    GAME_ID=$($PSQL "SELECT game_id FROM games WHERE user_id=$USER_ID ORDER BY game_id DESC LIMIT 1")
 
-    THIS_GAME_ID=$($PSQL "SELECT ")
     NUMBER_OF_GUESSES=$((NUMBER_OF_GUESSES + 1))
 
-      if [[ $GUESSED_NUMBER -lt $SECRET_NUMBER ]]
+      if [[ $SECRET_NUMBER -gt $GUESSED_NUMBER ]]
       then
         echo "It's higher than that, guess again:"
         $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID" 
         
-      elif [[ $GUESSED_NUMBER -gt $SECRET_NUMBER ]]
+      elif [[ $SECRET_NUMBER -lt $GUESSED_NUMBER ]]
       then
         echo "It's lower than that, guess again:"
         $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID" 
 
-      else
+      elif [[ $SECRET_NUMBER -eq $GUESSED_NUMBER ]]
+      then
 
-        if [[ $NUMBER_OF_GUESSES -lt $BEST_GAME ]] || [[ -z $BEST_GAME ]]
+        echo You guessed it in $NUMBER_OF_GUESSES tries. The secret number was $SECRET_NUMBER. Nice job!
+
+        if [[ $NUMBER_OF_GUESSES -lt $BEST_GAME || -z $BEST_GAME ]]
         then
           $PSQL "UPDATE users SET best_game=$NUMBER_OF_GUESSES WHERE username='$USERNAME'"
         fi
 
         $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID" 
 
-        echo You guessed it in $NUMBER_OF_GUESSES tries. The secret number was $SECRET_NUMBER. Nice job!
-
         break;
       fi
   else
     echo "That is not an integer, guess again:"
+    echo "Guess the secret number between 1 and 1000:"
   fi
 done
 }
