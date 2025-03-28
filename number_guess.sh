@@ -15,7 +15,7 @@ PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
 if [[ ! -z $USER_NAME ]]
 then
 
-  USER_INFO=$($PSQL "SELECT username FROM users WHERE username='$USER_NAME'")
+  USER_INFO=$($PSQL "SELECT username FROM users WHERE username ILIKE '$USER_NAME'")
 
   if [[ -z $USER_INFO ]]
   then
@@ -35,17 +35,17 @@ then
 
     #alle infos über den user heraussuchen
     USER_EXTENDED_INFO=$($PSQL "SELECT users.user_id, username, game_id, games_played, best_game FROM users, games WHERE 
-    username='$USER_NAME' AND games.user_id = users.user_id")
+    username ILIKE '$USER_NAME' AND games.user_id = users.user_id")
 
     IFS="|" read -r USER_ID USERNAME GAME_ID GAMES_PLAYED BEST_GAME <<< "$USER_EXTENDED_INFO"
 
-    echo -e "Welcome back, '$USERNAME'! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
+    echo -e "Welcome back, $USERNAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
 
     $PSQL "UPDATE users SET games_played=games_played+1 WHERE user_id=$USER_ID"
     $PSQL "INSERT INTO games(user_id) VALUES($USER_ID)"
   fi
 
-  echo -e "\nGuess the secret number between 1 and 1000:"
+  echo Guess the secret number between 1 and 1000:
 
 fi
 
@@ -79,7 +79,7 @@ do
 
         if [[ $NUMBER_OF_GUESSES -lt $BEST_GAME ]] || [[ -z $BEST_GAME ]]
         then
-          $PSQL "UPDATE users SET best_game=$NUMBER_OF_GUESSES WHERE username='$USERNAME'"
+          $PSQL "UPDATE users SET best_game=$NUMBER_OF_GUESSES WHERE user_id=$USER_ID"
         fi
 
         $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID" 
