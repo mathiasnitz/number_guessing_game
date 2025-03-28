@@ -3,9 +3,8 @@
 echo Enter your username:
 read USER_NAME
 
-#random number
+#secret number
 SECRET_NUMBER=$((RANDOM % 1000 + 1))
-#echo $SECRET_NUMBER
 NUMBER_OF_GUESSES=0
 
 #datenbankverbindung in psql
@@ -25,7 +24,7 @@ then
     $PSQL "INSERT INTO users(username, games_played, best_game) VALUES('$USER_NAME', 1, NULL)"
 
     #user id heraussuchen
-    USER_ID=$($PSQL "SELECT user_id FROM users WHERE username='$USER_NAME'") 
+    USER_ID=$($PSQL "SELECT user_id FROM users WHERE username ILIKE '$USER_NAME'") 
 
     #ein neues spiel für diesen user in games anlegen
     NEW_GAME_ID=$($PSQL "INSERT INTO games(user_id) VALUES($USER_ID)")
