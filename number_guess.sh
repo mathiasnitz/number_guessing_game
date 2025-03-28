@@ -1,6 +1,8 @@
 #!/bin/bash
 
+#datenbankverbindung in psql
+PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
+
 echo Enter your username:
 read USER_NAME
 
-echo Hello $USER_NAME you wonderful angel
