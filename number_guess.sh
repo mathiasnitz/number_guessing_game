@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Enter your username:"
-read USER_NAME
+read USERNAME
 
 #secret number
 SECRET_NUMBER=$((RANDOM % 1000 + 1))
@@ -10,21 +10,21 @@ NUMBER_OF_GUESSES=0
 #datenbankverbindung in psql
 PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
 
-if [[ ! -z $USER_NAME ]]
+if [[ ! -z $USERNAME ]]
 then
 
-  USER_INFO=$($PSQL "SELECT username FROM users WHERE username ILIKE '$USER_NAME'")
+  USER_INFO=$($PSQL "SELECT username FROM users WHERE username ILIKE '$USERNAME'")
 
   if [[ -z $USER_INFO ]]
   then
 
-    echo "Welcome, $USER_NAME! It looks like this is your first time here."
+    echo "Welcome, $USERNAME! It looks like this is your first time here."
 
     #user zur users tabelle hinzufügen
-    $PSQL "INSERT INTO users(username, games_played, best_game) VALUES('$USER_NAME', 1, NULL)"
+    $PSQL "INSERT INTO users(username, games_played, best_game) VALUES('$USERNAME', 1, NULL)"
 
     #user id heraussuchen
-    USER_ID=$($PSQL "SELECT user_id FROM users WHERE username ILIKE '$USER_NAME'") 
+    USER_ID=$($PSQL "SELECT user_id FROM users WHERE username ILIKE '$USERNAME'") 
 
     #ein neues spiel für diesen user in games anlegen
     NEW_GAME_ID=$($PSQL "INSERT INTO games(user_id) VALUES($USER_ID)")
@@ -33,11 +33,11 @@ then
 
     #alle infos über den user heraussuchen
     USER_EXTENDED_INFO=$($PSQL "SELECT user_id, username, games_played, best_game FROM users WHERE 
-    username ILIKE '$USER_NAME'")
+    username ILIKE '$USERNAME'")
 
-    IFS="|" read -r USER_ID USERNAME GAMES_PLAYED BEST_GAME <<< "$USER_EXTENDED_INFO"
+    IFS="|" read -r USER_ID USERNAME_DB GAMES_PLAYED BEST_GAME <<< "$USER_EXTENDED_INFO"
 
-    echo "Welcome back, $USERNAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
+    echo "Welcome back, $USERNAME_DB! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
 
     $PSQL "UPDATE users SET games_played=games_played+1 WHERE user_id=$USER_ID"
     $PSQL "INSERT INTO games(user_id) VALUES($USER_ID)"
