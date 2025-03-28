@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 echo Enter your username:
 read USER_NAME
 
@@ -34,10 +33,10 @@ then
   else
 
     #alle infos über den user heraussuchen
-    USER_EXTENDED_INFO=$($PSQL "SELECT users.user_id, username, game_id, games_played, best_game FROM users, games WHERE 
-    username ILIKE '$USER_NAME' AND games.user_id = users.user_id")
+    USER_EXTENDED_INFO=$($PSQL "SELECT user_id, username, games_played, best_game FROM users WHERE 
+    username ILIKE '$USER_NAME'")
 
-    IFS="|" read -r USER_ID USERNAME GAME_ID GAMES_PLAYED BEST_GAME <<< "$USER_EXTENDED_INFO"
+    IFS="|" read -r USER_ID USERNAME GAMES_PLAYED BEST_GAME <<< "$USER_EXTENDED_INFO"
 
     echo -e "Welcome back, $USERNAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
 
