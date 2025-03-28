@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo Enter your username:
+echo "Enter your username:"
 read USER_NAME
 
 #secret number
