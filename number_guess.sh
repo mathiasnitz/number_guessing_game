@@ -5,6 +5,7 @@ read USERNAME
 
 #secret number
 SECRET_NUMBER=$(( RANDOM % 1000 + 1 ))
+
 NUMBER_OF_GUESSES=0
 
 #datenbankverbindung in psql
@@ -22,6 +23,8 @@ then
 
     #user zur users tabelle hinzufügen
     $PSQL "INSERT INTO users(username, games_played, best_game) VALUES('$USERNAME', 1, NULL)"
+
+    BEST_GAME=$($PSQL "SELECT best_game FROM users WHERE username ILIKE '$USERNAME'")
 
     #user id heraussuchen
     USER_ID=$($PSQL "SELECT user_id FROM users WHERE username ILIKE '$USERNAME'") 
