@@ -18,7 +18,8 @@ GUESSING_GAME() {
       then
         echo "It's lower than that, guess again:"
         
-      else
+      elif [[ $SECRET_NUMBER -eq $GUESSED_NUMBER ]]
+      then
         echo "You guessed it in $NUMBER_OF_GUESSES tries. The secret number was $SECRET_NUMBER. Nice job!"
 
         $PSQL "UPDATE games SET number_of_guesses=$NUMBER_OF_GUESSES WHERE game_id=$GAME_ID"
@@ -66,7 +67,7 @@ then
     # User-Infos auslesen
     IFS="|" read -r USERNAME_DB USER_ID GAMES_PLAYED2 BEST_GAME2 <<< "$USER_INFO"
 
-    GAMES_PLAYED=$($PSQL "SELECT games_played FROM games WHERE user_id=$USER_ID")
+    GAMES_PLAYED=$($PSQL "SELECT COUNT(game_id) FROM games WHERE user_id=$USER_ID")
     BEST_GAME=$($PSQL "SELECT MIN(number_of_guesses) FROM games WHERE user_id=$USER_ID")
 
     echo "Welcome back, $USERNAME_DB! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
